@@ -119,17 +119,17 @@ class RainDamageEvent:
     pitch: Pitch
 
     def __init__(self, pitch, hours):
-        damage = self._calculate_damage(pitch, hours)
+        damage = self.calculate_damage(pitch, hours)
         pitch_manager = PitchManager(pitch)
         pitch_manager.add_to_score(damage * -1)
 
         if pitch.can_be_maintained:
-            time_to_dry = self._calculate_time_to_dry(pitch)
+            time_to_dry = self.calculate_time_to_dry(pitch)
             maintenance_manager = MaintenanceManager(pitch)
             maintenance_manager.delay_maintenance(time_to_dry)
 
     @staticmethod
-    def _calculate_time_to_dry(pitch):
+    def calculate_time_to_dry(pitch):
         match pitch.turf_type:
             case TurfTypes.natural:
                 return 36
@@ -139,17 +139,17 @@ class RainDamageEvent:
                 return 12
 
     @staticmethod
-    def _calculate_damage(pitch, hours):
+    def calculate_damage(pitch, hours):
         match pitch.turf_type:
             case TurfTypes.natural:
-                return RainDamageEvent._calculate_cycles(3, hours) * 2
+                return RainDamageEvent.calculate_cycles(3, hours) * 2
             case TurfTypes.hybrid:
-                return RainDamageEvent._calculate_cycles(4, hours) * 2
+                return RainDamageEvent.calculate_cycles(4, hours) * 2
             case TurfTypes.artificial:
-                return RainDamageEvent._calculate_cycles(6, hours) * 2
+                return RainDamageEvent.calculate_cycles(6, hours) * 2
             case _:
                 raise "Turf type is not supported."
 
     @staticmethod
-    def _calculate_cycles(cycle, hours):
+    def calculate_cycles(cycle, hours):
         return math.floor(hours / cycle)

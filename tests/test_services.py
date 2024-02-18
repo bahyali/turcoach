@@ -34,7 +34,7 @@ def test_trigger_damage_event_rain_natural(pitch_manager, pitch):
     pitch_manager.add_teardown("rain", 12)  # Expecting damage calculation based on hours
 
     # Check if the score has been decreased according to the damage
-    expected_damage = RainDamageEvent._calculate_damage(pitch, 12)
+    expected_damage = RainDamageEvent.calculate_damage(pitch, 12)
     assert pitch.condition_score == 10 - expected_damage
 
 
