@@ -88,6 +88,10 @@ class MaintenanceManager:
         self.pitch.save()
 
 
+# TODO resolve cyclic dependencies.
+
+# ----------------- Event Triggers
+
 def trigger_score_change(pitch, new_score, old_score):
     check_maintainability(pitch, new_score)
 
@@ -95,6 +99,9 @@ def trigger_score_change(pitch, new_score, old_score):
 def trigger_damage_event(pitch, event_type, hours):
     if event_type == "rain":
         RainDamageEvent(pitch, hours)
+
+
+# ----------------- Events
 
 
 def check_maintainability(pitch, new_score):
