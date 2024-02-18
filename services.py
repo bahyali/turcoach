@@ -18,64 +18,10 @@ class PitchManager:
         self.pitch.save()
 
         # trigger event
-        self.trigger_score_change(new_score, old_score)
+        trigger_score_change(self.pitch, new_score, old_score)
 
-    def trigger_score_change(self, new_score, old_score):
-        self.check_maintainability(new_score)
-
-    def check_maintainability(self, new_score):
-        # check maintenance status
-        manager = MaintenanceManager(self.pitch)
-
-        if new_score <= 2:
-            manager.stop_maintenance()
-
-            self.pitch.must_be_replaced = True
-            self.pitch.save()
-
-        elif new_score == 10:
-            manager.stop_maintenance()
-        else:
-            if self.pitch.can_be_maintained is False:
-                manager.continue_maintenance()
-                self.pitch.must_be_replaced = False
-                self.pitch.save()
-
-    def trigger_damage_event(self, event_type, hours):
-
-        if event_type == "rain":
-
-            def _calculate_time_to_dry():
-                match self.pitch.turf_type:
-                    case TurfTypes.natural:
-                        return 36
-                    case TurfTypes.hybrid:
-                        return 24
-                    case TurfTypes.artificial:
-                        return 12
-
-            damage = self.calculate_rain_damage(hours)
-            self.add_to_score(damage * -1)
-
-            if self.pitch.can_be_maintained:
-                time_to_dry = _calculate_time_to_dry()
-                manager = MaintenanceManager(self.pitch)
-                manager.delay_maintenance(time_to_dry)
-
-    def calculate_rain_damage(self, hours):
-
-        def _calculate_cycles(cycle, hours):
-            return math.floor(hours / cycle)
-
-        match self.pitch.turf_type:
-            case TurfTypes.natural:
-                return _calculate_cycles(3, hours) * 2
-            case TurfTypes.hybrid:
-                return _calculate_cycles(4, hours) * 2
-            case TurfTypes.artificial:
-                return _calculate_cycles(6, hours) * 2
-            case _:
-                raise "Turf type is not supported."
+    def add_teardown(self, event_type, hours):
+        trigger_damage_event(self.pitch, event_type, hours)
 
 
 class MaintenanceManager:
@@ -140,3 +86,70 @@ class MaintenanceManager:
     def continue_maintenance(self):
         self.pitch.can_be_maintained = True
         self.pitch.save()
+
+
+def trigger_score_change(pitch, new_score, old_score):
+    check_maintainability(pitch, new_score)
+
+
+def trigger_damage_event(pitch, event_type, hours):
+    if event_type == "rain":
+        RainDamageEvent(pitch, hours)
+
+
+def check_maintainability(pitch, new_score):
+    manager = MaintenanceManager(pitch)
+
+    if new_score <= 2:
+        manager.stop_maintenance()
+
+        pitch.must_be_replaced = True
+        pitch.save()
+
+    elif new_score == 10:
+        manager.stop_maintenance()
+    else:
+        if pitch.can_be_maintained is False:
+            manager.continue_maintenance()
+            pitch.must_be_replaced = False
+            pitch.save()
+
+
+class RainDamageEvent:
+    pitch: Pitch
+
+    def __init__(self, pitch, hours):
+        damage = self._calculate_damage(pitch, hours)
+        pitch_manager = PitchManager(pitch)
+        pitch_manager.add_to_score(damage * -1)
+
+        if pitch.can_be_maintained:
+            time_to_dry = self._calculate_time_to_dry(pitch)
+            maintenance_manager = MaintenanceManager(pitch)
+            maintenance_manager.delay_maintenance(time_to_dry)
+
+    @staticmethod
+    def _calculate_time_to_dry(pitch):
+        match pitch.turf_type:
+            case TurfTypes.natural:
+                return 36
+            case TurfTypes.hybrid:
+                return 24
+            case TurfTypes.artificial:
+                return 12
+
+    @staticmethod
+    def _calculate_damage(pitch, hours):
+        match pitch.turf_type:
+            case TurfTypes.natural:
+                return RainDamageEvent._calculate_cycles(3, hours) * 2
+            case TurfTypes.hybrid:
+                return RainDamageEvent._calculate_cycles(4, hours) * 2
+            case TurfTypes.artificial:
+                return RainDamageEvent._calculate_cycles(6, hours) * 2
+            case _:
+                raise "Turf type is not supported."
+
+    @staticmethod
+    def _calculate_cycles(cycle, hours):
+        return math.floor(hours / cycle)
