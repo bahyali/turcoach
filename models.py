@@ -21,11 +21,11 @@ class Pitch(Document):
 
     # maintenance
     can_be_maintained: bool = True
-    last_maintained: int = 0
-    next_maintenance: int = 0
+    last_maintained: float = 0
+    next_maintenance: float = 0
 
     # replacement
-    replacement_date: int = 0
+    replacement_date: float = 0
     must_be_replaced: bool = False
 
     def get_score(self) -> int:
@@ -44,7 +44,7 @@ class MaintenanceStatuses(str, Enum):
 
 class Maintenance(Document):
     pitch: Link[Pitch]
-    timestamp: int
+    timestamp: float
     status: MaintenanceStatuses = MaintenanceStatuses.scheduled
 
 

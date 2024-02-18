@@ -1,4 +1,3 @@
-import time
 from datetime import datetime, timedelta
 import math
 from models import Maintenance, MaintenanceStatuses, Pitch, TurfTypes
@@ -52,7 +51,7 @@ class MaintenanceManager:
         manager.add_to_score(4)
 
     def add_scheduled_maintenance(self, timestamp: int):
-        scheduled_maintenance = Maintenance(self, timestamp)
+        scheduled_maintenance = Maintenance(pitch=self.pitch, timestamp=timestamp)
 
         events = self.list_scheduled_events()
 
@@ -125,6 +124,12 @@ def check_maintainability(pitch, new_score):
             manager.continue_maintenance()
             pitch.must_be_replaced = False
             pitch.save()
+
+        maintenance_manager = MaintenanceManager(pitch)
+        scheduled_events = maintenance_manager.list_scheduled_events()
+
+        if len(scheduled_events) == 0:
+            maintenance_manager.add_scheduled_maintenance(datetime.now().timestamp())
 
 
 class RainDamageEvent:
