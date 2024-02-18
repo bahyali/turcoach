@@ -9,7 +9,7 @@ app = FastAPI()
 def read_should_maintain():
     results = Pitch.find(
         Pitch.condition_score < 10,
-        Pitch.condition_score >= 2,
+        Pitch.condition_score > 2,
         Pitch.can_be_maintained == True,
     )
 
