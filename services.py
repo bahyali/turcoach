@@ -1,3 +1,4 @@
+import time
 from datetime import datetime, timedelta
 import math
 from models import Maintenance, MaintenanceStatuses, Pitch, TurfTypes
@@ -30,13 +31,14 @@ class MaintenanceManager:
     def __init__(self, pitch: Pitch) -> None:
         self.pitch = pitch
 
-    def delay_maintenance(self, hours):
+    def delay_maintenance_when_applicable(self, hours):
         scheduled_events = self.list_scheduled_events()
-
         if len(scheduled_events) > 0:
             for event in scheduled_events:
-                if event.timestamp < datetime.now() + timedelta(hours=hours):
-                    event.timestamp = datetime.now() + timedelta(hours=hours)
+                new_time = datetime.now() + timedelta(hours=hours)
+                if event.timestamp < new_time.timestamp():
+                    event.timestamp = new_time.timestamp()
+                    print("event", event)
                     event.save()
 
     def complete_scheduled_maintenance(self, maintenance: Maintenance):
@@ -52,7 +54,7 @@ class MaintenanceManager:
     def add_scheduled_maintenance(self, timestamp: int):
         scheduled_maintenance = Maintenance(self, timestamp)
 
-        events = self.list_scheduled_events().to_list()
+        events = self.list_scheduled_events()
 
         if len(events) > 0:
             raise "A maintenance event is already scheduled."
@@ -76,7 +78,7 @@ class MaintenanceManager:
         return Maintenance.find(
             Maintenance.pitch.id == self.pitch.id,
             Maintenance.status == MaintenanceStatuses.scheduled,
-        )
+        ).to_list()
 
     def stop_maintenance(self):
         self.pitch.can_be_maintained = False
@@ -85,6 +87,8 @@ class MaintenanceManager:
 
     def continue_maintenance(self):
         self.pitch.can_be_maintained = True
+        new_time = datetime.now() + timedelta(hours=6)
+        self.add_scheduled_maintenance(new_time.timestamp())
         self.pitch.save()
 
 
@@ -133,7 +137,8 @@ class RainDamageEvent:
         if pitch.can_be_maintained:
             time_to_dry = self.calculate_time_to_dry(pitch)
             maintenance_manager = MaintenanceManager(pitch)
-            maintenance_manager.delay_maintenance(time_to_dry)
+
+            maintenance_manager.delay_maintenance_when_applicable(time_to_dry)
 
     @staticmethod
     def calculate_time_to_dry(pitch):
