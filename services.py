@@ -125,11 +125,10 @@ def check_maintainability(pitch, new_score):
             pitch.must_be_replaced = False
             pitch.save()
 
-        maintenance_manager = MaintenanceManager(pitch)
-        scheduled_events = maintenance_manager.list_scheduled_events()
+        scheduled_events = manager.list_scheduled_events()
 
         if len(scheduled_events) == 0:
-            maintenance_manager.add_scheduled_maintenance(datetime.now().timestamp())
+            manager.add_scheduled_maintenance(datetime.now().timestamp())
 
 
 class RainDamageEvent:
