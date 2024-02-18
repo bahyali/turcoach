@@ -92,6 +92,7 @@ class MaintenanceManager:
 
 # ----------------- Event Triggers
 
+
 def trigger_score_change(pitch, new_score, old_score):
     check_maintainability(pitch, new_score)
 
@@ -123,7 +124,6 @@ def check_maintainability(pitch, new_score):
 
 
 class RainDamageEvent:
-    pitch: Pitch
 
     def __init__(self, pitch, hours):
         damage = self.calculate_damage(pitch, hours)
