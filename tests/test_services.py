@@ -1,9 +1,9 @@
 import pytest
 from unittest.mock import MagicMock, patch
 from datetime import datetime, timedelta
-from models import Pitch, TurfTypes, Maintenance
-from services import PitchManager, MaintenanceManager, RainDamageEvent
-
+from models import Pitch, TurfTypes
+from services import PitchManager, MaintenanceManager
+from events import trigger_damage_event
 
 # This file is mostly generated using my friend and mentor ChatGPT.
 
@@ -33,9 +33,7 @@ def test_add_to_score(pitch_manager, pitch):
 
 def test_trigger_damage_event_rain_natural(pitch_manager, pitch):
     pitch.turf_type = TurfTypes.natural
-    pitch_manager.add_teardown(
-        "rain", 12
-    )  # Expecting damage calculation based on hours
+    trigger_damage_event(pitch, "rain", 12)
 
     # Check if the score has been decreased according to the damage
     expected_damage = 8
@@ -43,14 +41,14 @@ def test_trigger_damage_event_rain_natural(pitch_manager, pitch):
 
 
 @patch("services.MaintenanceManager.delay_maintenance_when_applicable")
-def test_trigger_damage_event_delay_maintenance(mock_delay_maintenance, pitch_manager):
-    pitch_manager.add_teardown("rain", 6)
+def test_trigger_damage_event_delay_maintenance(mock_delay_maintenance, pitch):
+    trigger_damage_event(pitch, "rain", 6)
     mock_delay_maintenance.assert_called()
 
 
 def test_trigger_damage_event_dont_delay_maintenance(pitch_manager, pitch):
     old_time = pitch.next_maintenance
-    pitch_manager.add_teardown("rain", 3)
+    trigger_damage_event(pitch, "rain", 6)
     assert datetime.fromtimestamp(pitch.next_maintenance) != old_time
 
 
