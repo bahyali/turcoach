@@ -6,6 +6,8 @@ from services import PitchManager, MaintenanceManager, RainDamageEvent
 
 
 # This file is mostly generated using my friend and mentor ChatGPT.
+
+
 @pytest.fixture
 def pitch():
     return Pitch(
@@ -31,31 +33,45 @@ def test_add_to_score(pitch_manager, pitch):
 
 def test_trigger_damage_event_rain_natural(pitch_manager, pitch):
     pitch.turf_type = TurfTypes.natural
-    pitch_manager.add_teardown("rain", 12)  # Expecting damage calculation based on hours
+    pitch_manager.add_teardown(
+        "rain", 12
+    )  # Expecting damage calculation based on hours
 
     # Check if the score has been decreased according to the damage
-    expected_damage = RainDamageEvent.calculate_damage(pitch, 12)
+    expected_damage = 8
     assert pitch.condition_score == 10 - expected_damage
 
 
-@patch("services.MaintenanceManager.delay_maintenance")
+@patch("services.MaintenanceManager.delay_maintenance_when_applicable")
 def test_trigger_damage_event_delay_maintenance(mock_delay_maintenance, pitch_manager):
     pitch_manager.add_teardown("rain", 6)
     mock_delay_maintenance.assert_called()
 
 
-def test_maintenance_manager_delay_maintenance(maintenance_manager, pitch):
+def test_trigger_damage_event_dont_delay_maintenance(pitch_manager, pitch):
+    old_time = pitch.next_maintenance
+    pitch_manager.add_teardown("rain", 3)
+    assert datetime.fromtimestamp(pitch.next_maintenance) != old_time
+
+
+@patch("services.MaintenanceManager.list_scheduled_events")
+def test_maintenance_manager_delay_maintenance(
+    mock_list_scheduled_events, maintenance_manager
+):
     # Setup a mock Maintenance query
     mock_event = MagicMock()
-    mock_event.timestamp = datetime.now()
-    Maintenance.find = MagicMock(return_value=[mock_event])
+    mock_event.timestamp = datetime.now().timestamp()
+
+    mock_list_scheduled_events.return_value = [mock_event]
 
     # Mock save method to avoid database interactions
     mock_event.save = MagicMock()
 
-    maintenance_manager.delay_maintenance(48)  # Adding 48 hours
+    maintenance_manager.delay_maintenance_when_applicable(48)  # Adding 48 hours
     updated_time = datetime.now() + timedelta(hours=48)
 
     # Assert that the event timestamp was updated
-    assert mock_event.timestamp.hour == updated_time.hour
+    assert datetime.fromtimestamp(mock_event.timestamp).hour == updated_time.hour
+    assert datetime.fromtimestamp(mock_event.timestamp).minute == updated_time.minute
+
     mock_event.save.assert_called_once()
