@@ -26,7 +26,10 @@ Then navigate to `http://127.0.0.1:8000/docs` to view the API docs and test the 
 # Run pytest
 pytest
 ```
-
+## TODO
+- [ ] Add more tests to cover more cases.
+- [ ] Use mock db calls in unit tests.
+- [ ] Add setup/teardown to support atomic integration tests.
 
 ## Built With
 
