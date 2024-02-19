@@ -12,5 +12,6 @@ event_listener.add_listener("score_changed", trigger_score_change)
 event_listener.add_listener("add_damage", trigger_damage_event)
 
 
+# syntactic sugar.
 def listen():
     pass

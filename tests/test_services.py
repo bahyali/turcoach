@@ -3,9 +3,7 @@ from unittest.mock import MagicMock, patch
 from datetime import datetime, timedelta
 from models import Pitch, TurfTypes
 from services import PitchManager, MaintenanceManager
-import listeners
-
-listeners.listen()
+import listeners as listeners_module
 
 
 @pytest.fixture
@@ -18,12 +16,17 @@ def pitch():
 
 
 @pytest.fixture
-def pitch_manager(pitch):
+def listeners():
+    listeners_module.listen()
+
+
+@pytest.fixture
+def pitch_manager(pitch, listeners):
     return PitchManager(pitch)
 
 
 @pytest.fixture
-def maintenance_manager(pitch):
+def maintenance_manager(pitch, listeners):
     return MaintenanceManager(pitch)
 
 
@@ -50,6 +53,8 @@ def test_trigger_damage_event_delay_maintenance(
     pitch_manager.add_rain_damage(6)
 
     fresh_pitch = Pitch.find_one(Pitch.id == pitch.id).run()
+    
+    assert mock_delay_maintenance.called_once()
     assert fresh_pitch.next_maintenance > old_time
 
 

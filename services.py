@@ -19,7 +19,6 @@ class PitchManager:
         event_listener.trigger_event("score_changed", self.pitch, new_score)
 
     def add_rain_damage(self, hours: int):
-
         event_listener.trigger_event("add_damage", self.pitch, "rain", hours)
 
 

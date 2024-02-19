@@ -48,7 +48,6 @@ class RainDamageEvent:
         damage = self.calculate_damage(pitch, hours)
         pitch_manager = PitchManager(pitch)
         pitch_manager.add_to_score(damage * -1)
-        # trigger_score_change(pitch, pitch.get_score())
 
         if pitch.can_be_maintained:
             time_to_dry = self.calculate_time_to_dry(pitch)
