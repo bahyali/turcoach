@@ -3,9 +3,9 @@ from unittest.mock import MagicMock, patch
 from datetime import datetime, timedelta
 from models import Pitch, TurfTypes
 from services import PitchManager, MaintenanceManager
-from events import trigger_damage_event
+import listeners
 
-# This file is mostly generated using my friend and mentor ChatGPT.
+listeners.listen()
 
 
 @pytest.fixture

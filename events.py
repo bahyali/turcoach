@@ -2,7 +2,6 @@ import math
 from models import TurfTypes
 from services import PitchManager, MaintenanceManager
 from datetime import datetime
-from utils import event_listener
 
 
 def trigger_complete_maintenance(pitch):
@@ -11,22 +10,13 @@ def trigger_complete_maintenance(pitch):
     trigger_score_change(pitch, pitch.get_score())
 
 
-event_listener.add_listener("maintenance_completed", trigger_complete_maintenance)
-
-
 def trigger_score_change(pitch, new_score):
     check_maintainability(pitch, new_score)
-
-
-event_listener.add_listener("score_changed", trigger_score_change)
 
 
 def trigger_damage_event(pitch, event_type, hours):
     if event_type == "rain":
         RainDamageEvent(pitch, hours)
-
-
-event_listener.add_listener("add_damage", trigger_damage_event)
 
 
 def check_maintainability(pitch, new_score):
@@ -58,7 +48,7 @@ class RainDamageEvent:
         damage = self.calculate_damage(pitch, hours)
         pitch_manager = PitchManager(pitch)
         pitch_manager.add_to_score(damage * -1)
-        trigger_score_change(pitch, pitch.get_score())
+        # trigger_score_change(pitch, pitch.get_score())
 
         if pitch.can_be_maintained:
             time_to_dry = self.calculate_time_to_dry(pitch)
