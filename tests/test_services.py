@@ -35,7 +35,7 @@ def test_add_to_score(pitch_manager, pitch):
 
 def test_trigger_damage_event_rain_natural(pitch_manager, pitch):
     pitch.turf_type = TurfTypes.natural
-    trigger_damage_event(pitch, "rain", 12)
+    pitch_manager.add_rain_damage(12)
 
     # Check if the score has been decreased according to the damage
     expected_damage = 8
@@ -43,18 +43,22 @@ def test_trigger_damage_event_rain_natural(pitch_manager, pitch):
 
 
 @patch("services.MaintenanceManager.delay_maintenance_when_applicable")
-def test_trigger_damage_event_delay_maintenance(mock_delay_maintenance, pitch):
+def test_trigger_damage_event_delay_maintenance(
+    mock_delay_maintenance, pitch, pitch_manager
+):
     old_time = pitch.next_maintenance
-    trigger_damage_event(pitch, "rain", 6)
-    new_pitch = Pitch.find_one(Pitch.id == pitch.id).run()
-    assert new_pitch.next_maintenance > old_time
+    pitch_manager.add_rain_damage(6)
+
+    fresh_pitch = Pitch.find_one(Pitch.id == pitch.id).run()
+    assert fresh_pitch.next_maintenance > old_time
 
 
 def test_trigger_damage_event_dont_delay_maintenance(pitch_manager, pitch):
     old_time = pitch.next_maintenance
-    trigger_damage_event(pitch, "rain", 2)
-    new_pitch = Pitch.find_one(Pitch.id == pitch.id).run()
-    assert new_pitch.next_maintenance == old_time
+    pitch_manager.add_rain_damage(2)
+
+    fresh_pitch = Pitch.find_one(Pitch.id == pitch.id).run()
+    assert fresh_pitch.next_maintenance == old_time
 
 
 @patch("services.MaintenanceManager.list_scheduled_events")

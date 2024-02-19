@@ -1,5 +1,6 @@
 from models import Maintenance, MaintenanceStatuses, Pitch
 from datetime import datetime, timedelta
+from utils import event_listener
 
 
 class PitchManager:
@@ -14,6 +15,12 @@ class PitchManager:
 
         # persist
         self.pitch.save()
+
+        event_listener.trigger_event("score_changed", self.pitch, new_score)
+
+    def add_rain_damage(self, hours: int):
+
+        event_listener.trigger_event("add_damage", self.pitch, "rain", hours)
 
 
 class MaintenanceManager:
@@ -40,7 +47,7 @@ class MaintenanceManager:
         maintenance.save()
         self.pitch.save()
 
-        # trigger_complete_maintenance(self.pitch)
+        event_listener.trigger_event("maintenance_completed", self.pitch)
 
     def add_scheduled_maintenance(self, timestamp: float):
         scheduled_maintenance = Maintenance(pitch=self.pitch, timestamp=timestamp)
