@@ -11,8 +11,10 @@ from events import trigger_damage_event
 @pytest.fixture
 def pitch():
     return Pitch(
-        name="Test Pitch", location="Test Location", turf_type=TurfTypes.natural
-    )
+        name="Test Pitch",
+        location="Test Location",
+        turf_type=TurfTypes.natural,
+    ).insert()
 
 
 @pytest.fixture
@@ -42,14 +44,17 @@ def test_trigger_damage_event_rain_natural(pitch_manager, pitch):
 
 @patch("services.MaintenanceManager.delay_maintenance_when_applicable")
 def test_trigger_damage_event_delay_maintenance(mock_delay_maintenance, pitch):
+    old_time = pitch.next_maintenance
     trigger_damage_event(pitch, "rain", 6)
-    mock_delay_maintenance.assert_called()
+    new_pitch = Pitch.find_one(Pitch.id == pitch.id).run()
+    assert new_pitch.next_maintenance > old_time
 
 
 def test_trigger_damage_event_dont_delay_maintenance(pitch_manager, pitch):
     old_time = pitch.next_maintenance
-    trigger_damage_event(pitch, "rain", 6)
-    assert datetime.fromtimestamp(pitch.next_maintenance) != old_time
+    trigger_damage_event(pitch, "rain", 2)
+    new_pitch = Pitch.find_one(Pitch.id == pitch.id).run()
+    assert new_pitch.next_maintenance == old_time
 
 
 @patch("services.MaintenanceManager.list_scheduled_events")

@@ -36,11 +36,11 @@ def check_maintainability(pitch, new_score):
             manager.continue_maintenance()
             pitch.must_be_replaced = False
             pitch.save()
+        else:
+            scheduled_events = manager.list_scheduled_events()
 
-        scheduled_events = manager.list_scheduled_events()
-
-        if len(scheduled_events) == 0:
-            manager.add_scheduled_maintenance(datetime.now().timestamp())
+            if len(scheduled_events) == 0:
+                manager.add_scheduled_maintenance(datetime.now().timestamp())
 
 
 class RainDamageEvent:
@@ -54,7 +54,6 @@ class RainDamageEvent:
         if pitch.can_be_maintained:
             time_to_dry = self.calculate_time_to_dry(pitch)
             maintenance_manager = MaintenanceManager(pitch)
-
             maintenance_manager.delay_maintenance_when_applicable(time_to_dry)
 
     @staticmethod

@@ -29,7 +29,8 @@ class MaintenanceManager:
                 new_time = datetime.now() + timedelta(hours=hours)
                 if event.timestamp < new_time.timestamp():
                     event.timestamp = new_time.timestamp()
-                    print("event", event)
+                    self.pitch.next_maintenance = new_time.timestamp()
+                    self.pitch.save()
                     event.save()
 
     def complete_scheduled_maintenance(self, maintenance: Maintenance):
@@ -41,7 +42,7 @@ class MaintenanceManager:
 
         # trigger_complete_maintenance(self.pitch)
 
-    def add_scheduled_maintenance(self, timestamp: int):
+    def add_scheduled_maintenance(self, timestamp: float):
         scheduled_maintenance = Maintenance(pitch=self.pitch, timestamp=timestamp)
 
         events = self.list_scheduled_events()
