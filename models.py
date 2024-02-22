@@ -20,7 +20,7 @@ class Pitch(Document):
     condition_score: int = 10
 
     # maintenance
-    can_be_maintained: bool = True
+    can_be_maintained: bool = False
     last_maintained: float = 0
     next_maintenance: float = 0
 

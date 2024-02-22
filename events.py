@@ -20,7 +20,7 @@ def trigger_damage_event(pitch, event_type, hours):
 
 
 def check_maintainability(pitch, new_score):
-    manager = MaintenanceManager(pitch)
+    manager = MaintenanceManager(PitchManager(pitch))
 
     if new_score <= 2:
         manager.stop_maintenance()
@@ -51,7 +51,7 @@ class RainDamageEvent:
 
         if pitch.can_be_maintained:
             time_to_dry = self.calculate_time_to_dry(pitch)
-            maintenance_manager = MaintenanceManager(pitch)
+            maintenance_manager = MaintenanceManager(pitch_manager)
             maintenance_manager.delay_maintenance_when_applicable(time_to_dry)
 
     @staticmethod

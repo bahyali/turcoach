@@ -19,14 +19,21 @@ class PitchManager:
         event_listener.trigger_event("score_changed", self.pitch, new_score)
 
     def add_rain_damage(self, hours: int):
-        event_listener.trigger_event("add_damage", self.pitch, "rain", hours)
+        event_listener.trigger_event(
+            "add_damage", self.pitch, event_type="rain", hours=hours
+        )
+
+    def set_property(self, property_name, value):
+        self.pitch.set({property_name: value})
 
 
 class MaintenanceManager:
     pitch: Pitch = None
+    pitch_manager = None
 
-    def __init__(self, pitch: Pitch) -> None:
-        self.pitch = pitch
+    def __init__(self, pitch_manager: PitchManager) -> None:
+        self.pitch_manager = pitch_manager
+        self.pitch = pitch_manager.pitch
 
     def delay_maintenance_when_applicable(self, hours):
         scheduled_events = self.list_scheduled_events()
@@ -35,8 +42,9 @@ class MaintenanceManager:
                 new_time = datetime.now() + timedelta(hours=hours)
                 if event.timestamp < new_time.timestamp():
                     event.timestamp = new_time.timestamp()
-                    self.pitch.next_maintenance = new_time.timestamp()
-                    self.pitch.save()
+                    self.pitch_manager.set_property(
+                        "next_maintenance", new_time.timestamp()
+                    )
                     event.save()
 
     def complete_scheduled_maintenance(self, maintenance: Maintenance):
@@ -62,6 +70,9 @@ class MaintenanceManager:
         scheduled_maintenance.insert()
 
     def remove_scheduled_maintenance(self):
+        self.pitch.next_maintenance = 0
+        self.pitch.save()
+
         Maintenance.find(
             Maintenance.pitch.id == self.pitch.id,
             Maintenance.status == MaintenanceStatuses.scheduled,

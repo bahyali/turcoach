@@ -26,8 +26,8 @@ def pitch_manager(pitch, listeners):
 
 
 @pytest.fixture
-def maintenance_manager(pitch, listeners):
-    return MaintenanceManager(pitch)
+def maintenance_manager(pitch_manager, listeners):
+    return MaintenanceManager(pitch_manager)
 
 
 def test_add_to_score(pitch_manager, pitch):
@@ -45,17 +45,21 @@ def test_trigger_damage_event_rain_natural(pitch_manager, pitch):
     assert pitch.condition_score == 10 - expected_damage
 
 
-@patch("services.MaintenanceManager.delay_maintenance_when_applicable")
 def test_trigger_damage_event_delay_maintenance(
-    mock_delay_maintenance, pitch, pitch_manager
+    pitch_manager, maintenance_manager, pitch
 ):
+    pitch.can_be_maintained = True
+    maintenance_manager.add_scheduled_maintenance(datetime.now().timestamp())
     old_time = pitch.next_maintenance
+
+    # two events where trgigerred  here
     pitch_manager.add_rain_damage(6)
 
     fresh_pitch = Pitch.find_one(Pitch.id == pitch.id).run()
-    
-    assert mock_delay_maintenance.called_once()
-    assert fresh_pitch.next_maintenance > old_time
+
+    assert datetime.fromtimestamp(
+        fresh_pitch.next_maintenance
+    ) > datetime.fromtimestamp(old_time)
 
 
 def test_trigger_damage_event_dont_delay_maintenance(pitch_manager, pitch):
